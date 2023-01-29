@@ -1,7 +1,13 @@
 import "@fontsource/open-sans/300.css";
 import "@fontsource/open-sans/400.css";
 import "@fontsource/open-sans/700.css";
-import { extendTheme } from "@chakra-ui/react";
+import { extendTheme, ThemeConfig } from "@chakra-ui/react";
+import { Button } from "./button";
+
+const config: ThemeConfig = {
+  initialColorMode: "light",
+  useSystemColorMode: true,
+};
 
 const colors = {
   brand: {
@@ -21,4 +27,8 @@ const styles = {
   }),
 };
 
-export const theme = extendTheme({ colors, fonts, styles });
+const components = {
+  Button,
+};
+
+export const theme = extendTheme({ config, colors, fonts, styles, components });
