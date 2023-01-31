@@ -1,15 +1,38 @@
 import { authModalState } from "@/src/atoms/authModalAtom";
 import { useColorModeValue, Input, Button, Flex, Text } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useState, useRef, createRef } from "react";
 import { useSetRecoilState } from "recoil";
+import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
+import { auth } from "../../../firebase/clientApp";
+import { FIREBASE_ERRORS } from "@/src/firebase/errors";
 
 const SignUp: React.FC = () => {
-  const [signUpForm, setSignUpForm] = useState({ email: "", password: "" });
+  const [signUpForm, setSignUpForm] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [currentlySelectedInput, setCurrentlySelectedInput] = useState(0);
+  const [error, setError] = useState("");
   const setAuthModalState = useSetRecoilState(authModalState);
+  const [createUserWithEmailAndPassword, user, loading, userError] =
+    useCreateUserWithEmailAndPassword(auth);
 
-  const onSubmit = () => {};
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    // Prevent the form from automatically being dismissed.
+    event.preventDefault();
 
-  const bg = useColorModeValue("white", "#2D3748");
+    // Reset the error.
+    if (error || userError) {
+      setError("");
+    }
+
+    if (signUpForm.password !== signUpForm.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    createUserWithEmailAndPassword(signUpForm.email, signUpForm.password);
+  };
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     // Update form state. event.target.name will be either 'email' or 'password'
@@ -21,8 +44,10 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <form>
+    <form onSubmit={onSubmit}>
       <Input
+        autoFocus
+        required
         name="email"
         placeholder="email"
         type={"email"}
@@ -30,15 +55,16 @@ const SignUp: React.FC = () => {
         onChange={onChange}
         fontSize={"10pt"}
         _placeholder={{ color: "gray.500" }}
-        _hover={{ bg: bg, border: "1px solid", borderColor: "blue.500" }}
+        _hover={{ bg: "white", border: "1px solid", borderColor: "blue.500" }}
         _focus={{
           outline: "none",
-          bg: bg,
+          bg: "white",
           border: "1px solid",
           borderColor: "blue.500",
         }}
       ></Input>
       <Input
+        required
         name="password"
         placeholder="password"
         type={"password"}
@@ -46,31 +72,43 @@ const SignUp: React.FC = () => {
         onChange={onChange}
         fontSize={"10pt"}
         _placeholder={{ color: "gray.500" }}
-        _hover={{ bg: bg, border: "1px solid", borderColor: "blue.500" }}
+        _hover={{ bg: "white", border: "1px solid", borderColor: "blue.500" }}
         _focus={{
           outline: "none",
-          bg: bg,
+          bg: "white",
           border: "1px solid",
           borderColor: "blue.500",
         }}
       ></Input>
       <Input
-        name="password"
+        required
+        name="confirmPassword"
         placeholder="confirm password"
         type={"password"}
         mb={2}
         onChange={onChange}
         fontSize={"10pt"}
         _placeholder={{ color: "gray.500" }}
-        _hover={{ bg: bg, border: "1px solid", borderColor: "blue.500" }}
+        _hover={{ bg: "white", border: "1px solid", borderColor: "blue.500" }}
         _focus={{
           outline: "none",
-          bg: bg,
+          bg: "white",
           border: "1px solid",
           borderColor: "blue.500",
         }}
       ></Input>
-      <Button width={"100%"} height={"36px"} mt={2} mb={2} type="submit">
+      <Text color="red" fontSize="10pt" textAlign="left">
+        {error ||
+          FIREBASE_ERRORS[userError?.code as keyof typeof FIREBASE_ERRORS]}
+      </Text>
+      <Button
+        width={"100%"}
+        height={"36px"}
+        mt={2}
+        mb={2}
+        type="submit"
+        isLoading={loading}
+      >
         Sign Up
       </Button>
       <Flex fontSize={"9pt"} justifyContent={"center"}>
